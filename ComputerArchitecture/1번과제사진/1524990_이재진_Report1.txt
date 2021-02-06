@@ -1,0 +1,21 @@
+0000:	fe 80	; 0000 offset: 10000 000 11111110   BR 100h offset = 100h - 2 = 0FEh
+
+0100:	14 09	; LDI R1,#20h	R1 <- #value			00001 001 00010100	R1(A)=20
+0102:	13 0a	; LDI R2,#19h 	R2 <- #value			00001 010 00010011	R2(B)=19 
+0104:	01 0b	; LDI R3,#01h 	R3 <- #value			00001 011 00000001	R3(C)=1
+0106:	f8 f8	; CALL 200h  	PC <- PC + offset			11111 000 11111010	offset = 200-108
+0108:	12 09	; LDI R1,#18h 	R1 <- #value			00001 001 00011000	R1(A)=18
+010a:	f4 f8	; CALL 200h 	PC <- PC + offset			11111 000 11110100	offset = 200-10D 
+010c:	01 00	; HALT		System halt
+
+0200:	28 38	; CMP R1 R2	SR <- Rs1 - Rs2			00111 000 00101000	R1 - R2(두수의 차이 구하기)	
+0202:	fc f1	; BRLT offset	S XOR V : PC <- PC + offset		11110 001 11111100 	BRV를 사용하려 했으나 오류로 인해서 XOR을 이용하여 결과값이 0 or 음수이면 400으로 분기 offset = 400 - 204 
+0204:	fa e0	; BRGE offset	NOT(S XOR V) : PC <- PC + offset	11100 000 11111010 	양수이면 300으로 분기 offset = 300 - 206
+0206:	00 48	; RET		POP PC				01001 000 00000000	PC로 돌아감		
+
+0300:	00 23	; INC Rd		Rd <- Rd + 1			00100 011 00000000 	C++(R3++)
+0302:	00 48	; RET		POP PC				01001 000 00000000   	PC로 돌아감
+
+0400:	01 23	; DEC Rd		Rd <- Rd - 1			00100 011 00000001 	C--(R3--)
+0402:	00 48	; RET		POP PC				01001 000 00000000   	PC로 돌아감
+

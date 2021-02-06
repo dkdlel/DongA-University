@@ -1,0 +1,219 @@
+#include <bits/stdc++.h>
+using namespace std;
+ifstream fcin("allocation.inp");
+ofstream fcout("allocation.out");
+
+typedef struct Fit {
+	int pid, end;
+}Fit;
+bool operator < (Fit A, Fit B) {
+	return A.end > B.end;
+}
+typedef struct Best {
+	int index, size;
+}Best;
+struct Compare_Best {
+	bool operator() (Best A, Best B) {
+		if (A.size == B.size) return A.index > B.index;
+		else return A.size > B.size;
+	}
+};
+
+typedef struct Worst {
+	int idx, size;
+}Worst;
+struct Compare_Worst {
+	bool operator() (Best A, Best B) {
+		if (A.size == B.size) return A.index > B.index;
+		else return A.size < B.size;
+	}
+};
+
+class Allocation {
+public:
+	int num;
+	typedef struct Info { 
+		int start, burst, pid, memory_size;
+	}Info;
+	typedef struct Memory { 
+		int start, pid, memory_size, end;
+	}Memory;
+	vector<Info> first_fit; // 기본 input
+	vector<Info> best_fit;
+	vector<Info> worst_fit;
+	vector<Memory> memory;
+	vector<Info> ready_queue;
+	priority_queue<Fit> First_Start_End;
+	priority_queue<Fit> Best_Start_End;
+	priority_queue<Fit> Worst_Strat_End;
+	int idx; // fit에 해당하는 index
+	int time; // 시간 확인
+	void Input();
+	void First_Fit();
+	bool Flag_Check(priority_queue<Fit> &Start_End);
+	void IsRelease(priority_queue<Fit> &Start_End, int index);
+	bool First_Release();
+	bool IsAllocate(Info &fit, priority_queue<Fit> &Start_End, int index);
+	void Best_Fit();
+	bool Best_Release();
+};
+void Allocation::Input() {
+
+	fcin >> num; // 들어오는 전체 프로세스 수
+	first_fit.resize(num);
+	best_fit.resize(num);
+	worst_fit.resize(num);
+	for (int i = 0; i < num; i++) { // 시작, 종료, 메모리 크기 입력
+		fcin >> first_fit[i].start >> first_fit[i].burst >> first_fit[i].memory_size;
+		first_fit[i].pid = i;
+	}
+	best_fit = first_fit;
+	worst_fit = first_fit;
+}
+void Allocation::First_Fit() {
+	// 초기화
+	idx = 0;
+	memory.clear();
+	memory.push_back({ 0, -1, 1000 , 99999});
+	ready_queue.clear();
+
+	for (time = 0; ; time++) {
+		bool flag = false;
+		while (!First_Start_End.empty() && First_Start_End.top().end == time) 
+			flag = Flag_Check(First_Start_End) ? true : false;
+		
+		if (flag)
+			if (First_Release()) return;
+
+		while (idx < num && time == first_fit[idx].start) {
+			bool check = true;
+			for (int i = 0; i < memory.size(); i++) {
+				if (memory[i].pid == -1 && first_fit[idx].memory_size <= memory[i].memory_size) {
+					check = IsAllocate(first_fit[idx], First_Start_End, i) ? true : false;
+					if (check) return;
+					check = false;
+					break;
+				}
+			}
+			if (check) ready_queue.push_back(first_fit[idx]);
+			idx++;
+		}
+	}
+}
+bool Allocation::Flag_Check(priority_queue<Fit> &Start_End) {
+	int a = memory.size();
+	for (int i = 0; i < a; i++) {
+		if (memory[i].pid == Start_End.top().pid) {
+			IsRelease(Start_End, i);
+			return true;
+		}
+	}
+}
+void Allocation::IsRelease(priority_queue<Fit> &Start_End, int index) {
+
+	for (int i = 0; i < memory.size(); i++) {
+		if (time == memory[i].end) {
+			memory[i].pid = -1;
+			memory[i].end = 99999;
+			Start_End.pop();
+		}
+	}
+
+	for (int i = 0; i < memory.size() - 1; i++) {
+		if (memory[i].pid == memory[i + 1].pid) {
+			memory[i].memory_size += memory[i + 1].memory_size;
+			memory.erase(memory.begin() + i + 1);
+			i--;
+		}
+	}
+}
+bool Allocation::IsAllocate(Info &fit, priority_queue<Fit> &Start_End, int index) {
+	if (fit.pid == num - 1) {
+		fcout << memory[index].start << '\n';
+		return true;
+	}
+	if (memory[index].memory_size > fit.memory_size) {
+		Memory temp = { memory[index].start + fit.memory_size, -1, memory[index].memory_size - fit.memory_size, 99999 };
+		memory[index].memory_size = fit.memory_size;
+		memory[index].pid = fit.pid;
+		memory[index].end = time + fit.burst;
+		memory.insert(memory.begin() + index + 1, temp);
+	}
+	Start_End.push({ fit.pid, time + fit.burst });
+	return false;
+}
+bool Allocation::First_Release() {
+	for (int i = 0; i < ready_queue.size(); i++) {
+		for (int j = 0; j < memory.size(); j++) {
+			if (memory[j].pid == -1 && ready_queue[i].memory_size <= memory[j].memory_size) {
+				if (IsAllocate(ready_queue[i], First_Start_End, j)) return true;
+				ready_queue.erase(ready_queue.begin() + i);
+				i--;
+				break;
+			}
+		}
+	}
+	return false;
+}
+void Allocation::Best_Fit() {
+	// 초기화
+	idx = 0;
+	memory.clear();
+	memory.push_back({ 0, -1, 1000 , 99999 });
+	ready_queue.clear();
+
+	for (time = 0; ; time++) {
+		bool flag = false;
+		while (!Best_Start_End.empty() && Best_Start_End.top().end == time)
+			flag = Flag_Check(Best_Start_End) ? true : false;
+
+		if (flag)
+			if (Best_Release()) return;
+
+		while (idx < num && time == best_fit[idx].start) {
+			priority_queue<Best, vector<Best>, Compare_Best> best_pq;
+			bool check = false;
+			for (int i = 0; i < memory.size(); i++) {
+				if (memory[i].pid == -1 && best_fit[idx].memory_size <= memory[i].memory_size) {
+					best_pq.push(Best{ i,memory[i].memory_size });
+					check = true;
+				}
+			}
+			if (check) {
+				if (IsAllocate(best_fit[idx], Best_Start_End, best_pq.top().index)) 
+					return;
+			}
+			else ready_queue.push_back(best_fit[idx]);
+			idx++;
+		}
+	}
+}
+bool Allocation::Best_Release() {
+	for (int i = 0; i < ready_queue.size(); i++) {
+		priority_queue<Best, vector<Best>, Compare_Best> best_pq;
+		bool flag = false;
+
+		for (int j = 0; j < memory.size(); j++) {
+			if (memory[j].pid == -1 && ready_queue[i].memory_size <= memory[j].memory_size) {
+				best_pq.push(Best{ j,memory[j].memory_size });
+				flag = true;
+			}
+		}
+
+		if (flag) {
+			if (IsAllocate(ready_queue[i], Best_Start_End, best_pq.top().index)) return true;
+			ready_queue.erase(ready_queue.begin() + i);
+			i--;
+		}
+	}
+	return false;
+}
+int main() {
+
+	Allocation Alloc;
+	Alloc.Input();
+	//Alloc.First_Fit();
+	Alloc.Best_Fit();
+	//Alloc.Worst_Fit();
+	return 0;
+}

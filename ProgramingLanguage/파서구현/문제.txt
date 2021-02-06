@@ -1,0 +1,60 @@
+ 다음 문법에 대한 파서를 만드시오. 구현언어는 자유롭게 선택할 수 있음.
+
+ 
+
+Goal → Expr
+
+Expr → Term Expr′
+
+Expr′ → + Term Expr′
+
+          | – Term Expr′
+
+          | ε
+
+Term → Factor Term′
+
+Term′ → * Factor Term′
+
+          | / Factor Term′
+
+          | ε
+
+Factor → number
+
+          | id
+
+          | ( Expr )
+
+ 
+
+입력: 하나의 식
+
+    - 입력의 끝은 ‘\n’
+
+    - number는 한자리 양의 정수 또는 0
+
+    - id는 하나의 영문자
+
+    - 입력에서 공백은 가능함
+
+ 
+
+출력:
+
+    - 오류가 없으면 Good 출력
+
+    - 오류가 있으면 Error 출력
+
+ 
+
+
+- 프로그램 소스코드
+
+- 다음 입력에 대한 실행결과의 스크린샷을 출력하여 제출
+
+    3 +4*5
+
+    3*4* 6
+
+    3(4+5)

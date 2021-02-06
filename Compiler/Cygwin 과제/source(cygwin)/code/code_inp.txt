@@ -1,0 +1,16 @@
+/* input */
+program example;
+
+func factorial(x : int) returns (int)
+begin
+	if( x <= 1) then return (x)
+	else return( x * factorial(x - 1))
+end
+
+main
+
+var n : int;
+begin
+	n = 10;
+	call print(factorial(n))
+end.

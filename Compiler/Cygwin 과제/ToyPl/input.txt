@@ -1,0 +1,7 @@
+program jejn;
+main
+begin
+        x = 1;
+        if ( 1 < 2 ) then x = x + 1 else x = x + 2;
+        if ( 1 < 2 ) then x = x + 1 else x = x + 2;
+end.

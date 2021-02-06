@@ -1,0 +1,89 @@
+// 반복문
+int fact(int n){
+for(int i = 1 ; i < n ; i++){
+result *=i;
+return result;
+}
+void main(){
+int n;
+cin >> n;
+fact(n);
+}
+
+
+program <Name>;
+-> program F;
+
+<SubPgmList> -> <SubPgmList> <SubPgm> -> <SubPgm> -> <FuncDecl> -> func <FuncName> ( <FormParam>) returns (<Type>) <VarDecl> <CompStmt>
+=>func fact ( <FormParam> -> <DclList> -> <Decl> -> <VarList> : <Type> -> <var> : int -> <Name> : int -> n : int)
+=>returns (<Type>) -> returns(int)
+<VarDecl> -> var <DclList>; -> var <Decl> -> var <VarList> : <Type> -> var <Var> : int -> var <Name> : int -> var result : int
+<CompStmt> -> begin <StmtList> end -> /*begin end 생략*/ <StmtList>; <Stmt> -> <Stmt>; <Stmt> -> <ForStmt>; <RtrnStmt> 
+=> <ForStmt>; -> for(<Var> = <Expr> to <Expr>)-> for(<Name> = <Expr> to <Expr>) -> for(i = <Expr> to <Term>) -> for(i = <Expr> to <Term>) -> for(i = <Term> to <Var>) -> for(i  = <Number>  to <Var>) -> for(i = 1 to n)
+=> <Stmt> -> <AsgnStmt> -> <Var> = <Expr> -> <Name> = <Term> -> result = <Term> * <Fact> -> result = <Fact> * <Fact> -> result = <Var> * <Var> = result = result * i
+=> <RtrnStmt> -> return (<Expr>) -> return (<Term>) -> return (<Fact>) -> return (<Var>) -> return (result) 
+
+// 메인 생략
+main <VarDecl> <CompStmt> .
+
+결론
+program F
+func fact(n : int)
+returns (int);
+var result : int;
+begin
+for( i = 1 to n)
+result = result * i;
+return (result);
+end;
+main
+var n : int;
+begin
+// n입력 받기 n = ?;
+call fact ( n );
+end
+.
+
+// 재귀문
+int fact(int n){
+if(n==1 || n ==2)
+return n;
+return n * fact(n-1);
+}
+void main(){
+int n;
+cin >> n;
+fact(n);
+}
+
+
+program <Name>;
+-> program F;
+
+<SubPgmList> -> <SubPgmList> <SubPgm> -> <SubPgm> -> <FuncDecl> -> func <FuncName> ( <FormParam>) returns (<Type>) <VarDecl> <CompStmt>
+=> func fact ( <FormParam> -> <DclList> -> <Decl> -> <VarList> : <Type> -> <var> : int -> <Name> : int -> n : int)
+=> returns(<Type>) -> returns(int)
+=> <VarDecl> -> NULL
+=> <CompStmt> ->  begin <StmtList> end -> /*begin end 생략*/ <StmtList>; <Stmt> -> <Stmt> ; <Stmt> -> <IfStmt>  ; <RtrnStmt>
+=> <IfStmt> -> if ( <Cond> ) then <Stmt> -> if ( <Cond> '|' <Rel> ) then <Stmt> -> if ( <Rel> '|' <Rel>) then <Stmt> -> if ( <Expr> = <Expr> '|' <Expr> = <Expr>) then <Stmt> -> if ( <Term> = <Term> '|' <Term> = <Term>) then <Stmt> -> if ( <Fact> = <Fact> '|' <Fact> = <Fact> ) then <Stmt> -> if ( <Var> = <Number> '|' <Var> = <Number> ) then <Stmt> -> if ( n = 1 '|' n = 2) then <Stmt> -> if ( n = 1 '|' n = 2) then <RtrnStmt> -> if ( n = 1 '|' n = 2 ) then return ( <Expr> ) -> if ( n = 1 '|' n = 2 ) then return ( <Term> ) -> if ( n = 1 '|' n = 2 ) then return ( <Fact> ) -> if ( n = 1 '|' n = 2) then return (<Var>) ->
+if ( n = 1 '|' n = 2 ) then return (n)
+=> <RtrnStmt> -> return ( <Expr> ) -> return ( <Term> * <Fact> ) -> return ( <Term> * <Fact> ) -> reuturn ( <Fact> * <Fact> ) -> return ( <Var> * <FuncCall> ) -> return ( n * <FuncCall> ) -> return ( n * <FuncName> ( <ParamList> ) -> return ( n * fact ( <ExprList> ) ) -> return ( n * fact ( <Expr> ) -> return ( n * fact ( <Expr> - <Term> ) ) -> return ( n * fact ( <Term> - <Term> ) ) -> return ( n * fact ( <Fact> - <Fact> ) ) -> return ( n * fact ( <Var> - <Number>) )  -> return ( n * fact ( n - 1) ) 
+
+// 메인 생략
+main <VarDecl> <CompStmt> .
+
+결론
+program F
+func fact(n : int)
+returns(int)
+begin
+if ( n = 1 '|' n = 2 ) then return (n);
+return ( n * fact ( n - 1) );
+end;
+main
+var n : int;
+begin
+// n입력 받기 n = ?;
+call fact ( n );
+end
+.

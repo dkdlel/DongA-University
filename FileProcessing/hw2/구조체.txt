@@ -1,0 +1,53 @@
+#include <stdio.h>
+#include <math.h>
+
+FILE *inp = fopen("hw2.inp", "rt");
+FILE *out = fopen("hw2.out", "wt");
+
+typedef struct {
+	int index, key;
+}Hash;
+
+Hash Hashing_Table[100];
+
+int size, hash;
+double Real_num;
+char star;
+
+int Hash_Cal() {
+	double tmp;
+	// 해쉬수 * 실수 값
+	tmp = (Real_num * hash) - floor(Real_num * hash);
+	// 둘째자리 버림 계산
+	tmp *= 100;
+
+	// 연산을 위한 반올림
+	tmp += 0.5;
+	tmp = floor(tmp);
+
+	// 소수 * 크기
+	tmp = tmp * size;
+
+	tmp /= 100;
+
+	return tmp;
+}
+int main() {
+
+	if ((inp = fopen("hw2.inp", "rt")) == NULL) fprintf(stderr, "cant't open %s\n", "hw1.inp");
+	if ((out = fopen("hw2.out", "wt")) == NULL) fprintf(stderr, "cant't open %s\n", "hw1.out");
+
+	fscanf(inp, "%d %lf", &size, &Real_num);
+
+	int i = 0; int input_cnt = 0;
+	while(fscanf(inp, "%d", &hash)) {
+		int h = Hash_Cal();
+		Hashing_Table[i].index = h;
+		Hashing_Table[i].key = hash;
+		i++; input_cnt++;
+	}
+
+	fclose(inp);
+	fclose(out);
+	return 0;
+}

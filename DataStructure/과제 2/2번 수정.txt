@@ -1,0 +1,252 @@
+#include <stdio.h>
+#include <stdlib.h>
+
+typedef struct Node // 노드 구조 정의
+{
+   int coef; // 계수
+   int expo; // 지수
+   struct Node *link;
+}Node;
+
+typedef struct List // 헤더 노드 구조 정의
+{
+   Node *head;
+}List;
+
+List* create_list() // 공백 다항식 리스트 생성
+{
+   List* new_list = (List*)malloc(sizeof(List)); // 헤더노드
+   new_list->head = NULL;
+   return new_list;
+}
+
+void insert_node(List* list, int coef, int expo) // 다항식 리스트에 삽입
+{
+   Node* new_node = (Node*)malloc(sizeof(Node)); // 노드 생성
+   Node* current_node = list->head; // 기존에 있는 다항식
+   Node* temp_node; // new노드 삽입하기위해 있는 다항식
+
+   new_node->coef = coef; // 새로만든 노드 지수에 선언한 값 대입
+   new_node->expo = expo; // 새로만든 노드 계수에 선언한 값 대입
+   new_node->link = NULL; // 새로만든 노드 link값은 NULL
+
+   if (list->head == NULL) // 초기 공백
+   {
+      list->head = new_node;
+      return;
+   }
+
+   if (current_node->link == NULL)
+   {
+      if (current_node->expo > new_node->expo)
+      {
+         current_node->link = new_node;
+      }
+      else if (current_node->expo < new_node->expo)
+      {
+         new_node->link = current_node;
+         list->head = new_node;
+      }
+   }
+
+   while(current_node->link != NULL)
+   {
+      if (current_node->expo < new_node->expo)
+      {
+         new_node->link = current_node;
+         list->head = new_node;
+         break;
+      }
+
+      if (current_node->link->expo > expo) // 기존에 있는 다항식의 지수가 새로운 다항식의 지수보다 클 경우
+      {
+         current_node = current_node->link;
+      }
+      else if (current_node->link->expo < expo) // 기존에 있는 다항식의 지수가 새로운 다항식의 지수보다 작을 경우
+      {
+         temp_node = new_node;
+         new_node = new_node->link;
+         temp_node->link = current_node->link;
+         current_node->link = temp_node;
+      }
+      else if (current_node->link->expo == expo)// 두개 같으면
+         return;
+
+      if (current_node->link == NULL)
+      {
+         current_node->link = new_node;
+      }
+   }
+}
+
+void add_poly(List* P1, List* P2, List* P3) // P1다항식과 P2다항식을 더해서 P3에 저장
+{
+   Node* p1 = P1->head; // 첫번째 다항식
+   Node* p2 = P2->head; // 두번째 다항식
+   int sum;
+
+   while (p1 && p2) // p1노드와 p2노드가 있는동안
+   {
+      if (p1->expo == p2->expo) // 지수가 같을때
+      {
+         sum = p1->coef + p2->coef;
+         insert_node(P3, sum, p1->expo);
+         p1 = p1->link;
+         p2 = p2->link;
+      }
+
+      else if (p1->expo > p2->expo) // p1의 지수가 클때
+      {
+         insert_node(P3, p1->coef, p1->expo);
+         p1 = p1->link;
+      }
+
+      else // p2의 지수가 클때
+      {
+         insert_node(P3, p2->coef, p2->expo);
+         p2 = p2->link;
+      }
+   }
+
+   for(;p1 !=NULL ; p1=p1->link) // 나머지 다출력
+      insert_node(P3, p1->coef, p1->expo);
+
+   for (; p2 != NULL; p2=p2->link) // 나머지 다출력
+      insert_node(P3, p2->coef, p2->expo);
+}
+
+void print_poly(List* list, FILE* out) // 다항식 출력
+{
+   Node* print_node = list->head;
+
+   while (print_node != NULL)
+   {
+      fprintf(out,"%d %d ", print_node->coef, print_node->expo);
+      print_node = print_node->link;
+   }
+   fprintf(out, "\n");
+}
+
+void delete_poly(List* list, int expo) // 다항식 삭제
+{
+   Node* pre_node;
+   Node* old_node;
+
+   pre_node = list->head; // 맨압 노드를 가르킴
+   old_node = pre_node->link; // 두번째 노드를 가르킴
+
+   if (old_node == NULL) // 맨압이 NULL일경우
+      return;
+
+   while (old_node != NULL) // 비교대상노드가 NULL일경우 
+   {
+      if (list->head->expo == expo) // 맨압을 삭제할경우
+      {
+         list->head = pre_node->link;
+         return;
+      }
+      else if (old_node->expo == expo)
+      {
+         pre_node->link = old_node->link;
+         break;
+      }
+      pre_node = pre_node->link;
+      old_node = old_node->link;
+   }
+   free(old_node);
+}
+
+int main() {
+
+   FILE *inp = fopen("hw2.inp", "rt");
+   FILE *out = fopen("hw2.out", "wt");
+
+   List *P1 = create_list(); // P1 생성
+   List *total = create_list(); // P1 저장하기 위한
+   List *Temp = create_list(); // add_poly쓰기위함
+   List *result = create_list(); // 
+   
+   Node *printout; // 출력을 위한 노드
+
+   char c1; // 비교할 문자
+   char c2; // 비교할 문자
+   char temp; // \n받을 문자
+   int coef; // 계수
+   int expo; // 지수
+   int flag = 0; // I나 D연산을 했는지 확인
+
+   for (;;)
+   {
+      fscanf(inp, "%c", &c1);
+      if (c1 == ' ' || c1 == '\n') // space나 enter면 무시
+         continue;
+
+      else if (c1 == 'I') // 삽입 연산
+      {
+         fscanf(inp, "%c", &temp); //I다음 \n받을용
+         for (;;)
+         {
+            fscanf(inp, "%c", &c2);
+            if (c2 == ' ')
+               continue;
+            else if (c2 == '\n')
+               break;
+            else
+            {
+               fscanf(inp, "%d", &expo);
+               coef = c2 - '0';
+               insert_node(P1, coef, expo);
+            }
+         }
+         print_poly(P1, out);
+         flag = 1;
+      }
+
+      else if (c1 == 'D') // 삭제 연산
+      {
+         fscanf(inp, "%c", &temp); // D다음 \n받을용
+         for (;;)
+         {
+            fscanf(inp, "%c", &c2);
+            if (c2 == ' ')
+               continue;
+            else if (c2 == '\n')
+               break;
+            else
+            {
+               expo = c2 - '0';
+               delete_poly(P1, expo);
+            }
+         }
+         print_poly(P1, out); // 연산이 끝난 두번째 다항식
+         flag = 1;
+      }
+
+      else if (c1 == '*')
+         break;
+
+      else // 숫자일때
+      {
+         if (flag) // 다항식의 연속계산인지 따로 계산인지 위한거
+         {
+            add_poly(P1, total, Temp);
+            total = Temp;
+            Temp = create_list();
+            P1 = create_list(); // P1  초기화
+            flag = 0;
+         }
+         fscanf(inp, "%d", &expo);
+         coef = c1 - '0';
+         insert_node(P1, coef, expo);
+      }
+   }
+
+   add_poly(P1, total, result);
+   print_poly(result, out);
+   fprintf(out, "*");
+
+   fclose(inp);
+   fclose(out);
+
+   return 0;
+}
